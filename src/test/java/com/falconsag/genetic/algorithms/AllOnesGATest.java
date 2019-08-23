@@ -1,12 +1,19 @@
 package com.falconsag.genetic.algorithms;
 
-import com.falconsag.genetic.Chromosome;
-import com.falconsag.genetic.Population;
+import com.falconsag.genetic.model.Chromosome;
+import com.falconsag.genetic.model.Population;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import org.apache.commons.collections4.iterators.PermutationIterator;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.is;
-import org.junit.Assert;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -99,4 +106,5 @@ public class AllOnesGATest {
         ga.evalPopulation(population);
         assertThat(ga.getAvgFitness(population), closeTo((double) 2 / 3, ERROR));
     }
+
 }

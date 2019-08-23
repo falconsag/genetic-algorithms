@@ -1,7 +1,7 @@
 package com.falconsag.genetic.algorithms;
 
-import com.falconsag.genetic.Chromosome;
-import com.falconsag.genetic.Population;
+import com.falconsag.genetic.model.Chromosome;
+import com.falconsag.genetic.model.Population;
 import java.util.ArrayList;
 import java.util.List;
 

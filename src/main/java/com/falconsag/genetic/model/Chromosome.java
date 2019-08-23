@@ -1,4 +1,4 @@
-package com.falconsag.genetic;
+package com.falconsag.genetic.model;
 
 import java.util.List;
 import java.util.Random;

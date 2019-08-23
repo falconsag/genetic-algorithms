@@ -1,7 +1,7 @@
 package com.falconsag.genetic.algorithms;
 
 
-import com.falconsag.genetic.Population;
+import com.falconsag.genetic.model.Population;
 
 public class Runner {
     public static void main(String[] args) {
