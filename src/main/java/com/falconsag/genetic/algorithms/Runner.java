@@ -11,8 +11,8 @@ public class Runner {
 
         int generationCounter = 1;
         while (!ga.isTerminationConditionMet(population)) {
-            System.out.println(String.format("Fittest chromosome is: " + population.getNthFittest(0)));
-            System.out.println(String.format("Population fitness is: " + population.getPopulationFitness()));
+            System.out.println("Fittest chromosome is: " + population.getNthFittest(0));
+            System.out.println("Population fitness is: " + population.getPopulationFitness());
             population = ga.crossoverPopulation(population);
             population = ga.mutatePopulation(population);
 
