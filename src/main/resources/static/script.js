@@ -16,6 +16,8 @@ var sightSeesColor = "#48EF69";
 var seesAlpha = 0.62
 var objectsAhead = {0: "empty", 1: "wall"};
 var simulation;
+var fitnessChartCtx = document.getElementById('fitnessChart').getContext('2d');
+var fitnessChart
 
 $("#generateButton").on("click", function () {
     var genLimit = $("input[name='genLimit']").val();
@@ -27,6 +29,7 @@ $("#generateButton").on("click", function () {
     var foodMax = $("input[name='foodMax']").val();
     var foodDecrease = $("input[name='foodDecrease']").val();
     var mazeSize = $("input[name='mazeSize']").val();
+    var numberOfSimulationsToAvg = $("input[name='numberOfSimulationsToAvg']").val();
 
 
     var url = "http://localhost:8080/evolve?genLimit=" + genLimit
@@ -38,6 +41,7 @@ $("#generateButton").on("click", function () {
         + "&foodMax=" + foodMax
         + "&foodDecrease=" + foodDecrease
         + "&mazeSize=" + mazeSize
+        + "&numberOfSimulationsToAvg=" + numberOfSimulationsToAvg
 
     console.log("evolving chromosomes..")
     $.getJSON(url, function (simulationResponse) {
@@ -52,6 +56,36 @@ $("#generateButton").on("click", function () {
             sliderVal = slider.val();
             drawState(sliderVal);
         })
+
+
+        console.log(fitnessChart)
+        var chartData = simulationResponse.fitnessValues
+        var labels = []
+        for (var i = 0; i < chartData.length; i++) {
+            labels.push("Generation: " + i)
+        }
+        if (typeof fitnessChart !== 'undefined') {
+            fitnessChart.data.labels=[];
+            fitnessChart.data.datasets[0].data=[];
+            fitnessChart.data.labels=[].concat(labels);
+            fitnessChart.data.datasets[0].data=[].concat(chartData);
+            fitnessChart.update();
+        } else {
+            fitnessChart = new Chart(fitnessChartCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'fitnessDataSet',
+                        backgroundColor: 'rgb(255, 99, 132)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        data: chartData
+                    }]
+                },
+                // Configuration options go here
+                options: {}
+            });
+        }
     });
 })
 
@@ -150,7 +184,6 @@ function drawState(stateIndex) {
             "rHP": rHP,
             "fHP": fHP
         };
-        console.log(sensorData)
         if (dirX == 1) {
             fillRectColorAndAlpha(x, y - (sightDistance * cellSize), (1 + sightDistance) * cellSize, (1 + 2 * sightDistance) * cellSize, c, seesAlpha);
             ctx.beginPath();

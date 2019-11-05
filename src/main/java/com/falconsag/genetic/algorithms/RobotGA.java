@@ -13,8 +13,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 public class RobotGA extends AbstractGA {
 
-    public static final int TRY_NUMBER = 1;
-
     public RobotGA(int populationSize, double mutationRate, double crossoverRate, int elitismCount) {
         super(populationSize, mutationRate, crossoverRate, elitismCount);
     }
@@ -33,10 +31,10 @@ public class RobotGA extends AbstractGA {
         return 0;
     }
 
-    public double calcFitness(Chromosome chromosome, List<GameState> gameStates) {
+    public double calcFitness(Chromosome chromosome, List<GameState> gameStates, int tryNumber) {
         double sumFitness = 0;
         double bestFitness = 0;
-        for (int i = 0; i < TRY_NUMBER; i++) {
+        for (int i = 0; i < tryNumber; i++) {
             ArrayList<GameState> currentGameStates = new ArrayList<>();
             double fitness = new Evaluator(chromosome).evaluate(currentGameStates);
             sumFitness += fitness;
@@ -46,7 +44,7 @@ public class RobotGA extends AbstractGA {
                 gameStates.addAll(currentGameStates);
             }
         }
-        double avgFitness = sumFitness / (double) TRY_NUMBER;
+        double avgFitness = sumFitness / (double) tryNumber;
         chromosome.setFitness(avgFitness);
         return avgFitness;
     }
@@ -56,10 +54,10 @@ public class RobotGA extends AbstractGA {
 
     }
 
-    public void evalPopulationForStates(Population population, List<GameState> states) {
+    public void evalPopulationForStates(Population population, List<GameState> states, int tryNumber) {
         List<ImmutablePair<Double, List<GameState>>> collect = population.getChromosomes().stream().map(chromosome -> {
             List<GameState> gameStates = new ArrayList<>();
-            calcFitness(chromosome, gameStates);
+            calcFitness(chromosome, gameStates,tryNumber);
             return new ImmutablePair<>(chromosome, gameStates);
         }).sorted(Comparator.comparing(p -> p.getLeft().getFitness(), Comparator.reverseOrder())).map(i -> ImmutablePair.of(i.left.getFitness(), i.right)).collect(Collectors.toList());
 
@@ -99,7 +97,7 @@ public class RobotGA extends AbstractGA {
         List<Chromosome> chromosomes = population.getChromosomes();
         for (int chromosomeIndex = 0; chromosomeIndex < chromosomes.size(); chromosomeIndex++) {
             Chromosome parent1 = chromosomes.get(chromosomeIndex);
-            if (crossoverRate > Math.random() && (chromosomeIndex > elitismCount-1)) {
+            if (crossoverRate > Math.random() && (chromosomeIndex > elitismCount - 1)) {
                 Chromosome parent2 = selectParent(population);
                 Chromosome offspring = singlePointCrossover(parent1, parent2);
                 newPopulation.addChromosome(offspring);
@@ -114,7 +112,7 @@ public class RobotGA extends AbstractGA {
     public Population mutatePopulation(Population population) {
         for (Chromosome chromosome : population.getChromosomes()) {
             for (int i = 0; i < chromosome.getGenes().size(); i++) {
-                if (Math.random() < mutationRate && i > elitismCount-1) {
+                if (Math.random() < mutationRate && i > elitismCount - 1) {
                     chromosome.flipGene(i);
                 }
             }

@@ -37,11 +37,28 @@ public class Evaluator {
     private static final int BITMASK_RHP = 0b000000001100;
     private static final int BITMASK_FHP = 0b000000000011;
 
-    private RandomInterval randomFieldPosition = new RandomInterval(1, MAZE_SIZE - 2);
-    private RandomInterval randomFoodValue = new RandomInterval(FOOD_MIN_VAL, FOOD_MAX_VAL);
+    public static final double FOOD_SCORE = 100;
+    public static final double MOVE_SCORE = 50;
+
+    private static RandomInterval RANDOM_FIELD_POSITION;
+    private static RandomInterval RANDOM_FOOD_VALUE;
     private Coord INITIAL_ROBOT_POS = new Coord(1, 3);
     private Coord INITIAL_ROBOT_DIR = DIR_RIGHT;
     public static int[] field;
+
+    public static Deque<Food> FOOD_STACK;
+    public Deque<Food> foodStack;
+
+    public static void init() {
+        FOOD_STACK = new ArrayDeque<>();
+        RANDOM_FIELD_POSITION = new RandomInterval(1, MAZE_SIZE - 2);
+        RANDOM_FOOD_VALUE = new RandomInterval(FOOD_MIN_VAL, FOOD_MAX_VAL);
+
+        for (int i = 0; i < 0; i++) {
+            Coord coord = new Coord(RANDOM_FIELD_POSITION.getRandom(), RANDOM_FIELD_POSITION.getRandom());
+            FOOD_STACK.add(new Food(coord, RANDOM_FOOD_VALUE.getRandom()));
+        }
+    }
 
     public Evaluator(Chromosome algo) {
         this.algo = algo;
@@ -52,25 +69,30 @@ public class Evaluator {
             field[getIndex(i, MAZE_SIZE - 1)] = WALL_FIELD;
             field[getIndex(MAZE_SIZE - 1, i)] = WALL_FIELD;
         }
+        foodStack = new ArrayDeque<>();
+        for (Food food : FOOD_STACK) {
+            foodStack.add(food.clone());
+        }
     }
 
 
     public double evaluate(List<GameState> gameStates) {
-        Deque<Food> foodStack = new ArrayDeque<>();
-
         Robot robot = new Robot(ROBOT_MAX_HP, INITIAL_ROBOT_POS, INITIAL_ROBOT_DIR);
-        Food food = getRandomFood();
         int i = 0;
         long accumHP = ROBOT_MAX_HP;
-        food = getFood(foodStack);
-        int numFoodPickedUp = 0;
+        Food food = getFood(foodStack);
+        int fitness = 0;
         double sumEnergyUsed = 0;
+        int foodConsumeCount = 0;
         while (i < NUMBER_OF_SIMULATE_STEPS) {
             if (field[getIndex(robot.getCoord())] == WALL_FIELD || robot.isOutOfEnergy()) {
                 appendGameState(gameStates, robot, food, null);
-                return 0;
+                if (robot.isOutOfEnergy()) {
+                    return fitness / 2;
+                } else {
+                    return 0;
+                }
             }
-
             appendGameState(gameStates, robot, food, getSensorIndexBitmap(robot, food));
             int sensorIndexBitmap = getSensorIndexBitmap(robot, food);
 //            String stringRepresentation = getStringRepresentation(sensorIndexBitmap);
@@ -79,10 +101,15 @@ public class Evaluator {
             int costOfAction = getCostOfAction(action);
             sumEnergyUsed += costOfAction;
             robot.takeAction(action, costOfAction);
+            if (Action.FORWARD.equals(action)) {
+                fitness += MOVE_SCORE;
+            }
             //apply hp
             if (robot.getCoord().equals(food.getCoord())) {
-                robot.addHp(food.consume());
-                numFoodPickedUp++;
+                int foodVal = food.consume();
+                robot.addHp(foodVal);
+                foodConsumeCount++;
+                fitness += (foodVal * foodConsumeCount);
             }
             if (food.isEmpty()) {
                 food = getFood(foodStack);
@@ -93,7 +120,7 @@ public class Evaluator {
             i++;
         }
         appendGameState(gameStates, robot, food, null);
-        return numFoodPickedUp;
+        return fitness;
     }
 
 
@@ -215,8 +242,8 @@ public class Evaluator {
     }
 
     private Food getRandomFood() {
-        Coord coord = new Coord(randomFieldPosition.getRandom(), randomFieldPosition.getRandom());
-        return new Food(coord, randomFoodValue.getRandom());
+        Coord coord = new Coord(RANDOM_FIELD_POSITION.getRandom(), RANDOM_FIELD_POSITION.getRandom());
+        return new Food(coord, RANDOM_FOOD_VALUE.getRandom());
     }
 
     public static int[] getField() {

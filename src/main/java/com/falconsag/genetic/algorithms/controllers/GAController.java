@@ -32,6 +32,7 @@ public class GAController {
                                     @RequestParam(value = "foodMax") int foodMax,
                                     @RequestParam(value = "foodDecrease") int foodDecrease,
                                     @RequestParam(value = "mazeSize") int mazeSize,
+                                    @RequestParam(value = "numberOfSimulationsToAvg") int numberOfSimulationsToAvg,
                                     @RequestParam(value = "doNothingCost") int doNothingCost) {
 
         Evaluator.setMoveCost(moveCost);
@@ -42,16 +43,21 @@ public class GAController {
         Evaluator.setFoodMax(foodMax);
         Evaluator.setMazeSize(mazeSize);
         Evaluator.setFoodDecrease(foodDecrease);
+        Evaluator.init();
 
+
+        List<Double> fitnessValues = new ArrayList<>();
         RobotGA ga = new RobotGA(100, 0.001, 0.99, 2);
         Population population = ga.initPopulation(GENE_LENGTH);
         List<GameState> gameStates = new ArrayList<>();
-        ga.evalPopulationForStates(population, gameStates);
+        ga.evalPopulationForStates(population, gameStates, numberOfSimulationsToAvg);
         int generationCounter = 1;
         while (!ga.isTerminationConditionMet(population) && generationCounter < genLimit) {
             Chromosome nthFittest = population.getNthFittest(0);
 
-            System.out.println("Fittest chromosome is: " + population.getNthFittest(0).getFitness());
+            Chromosome fittest = population.getNthFittest(0);
+            System.out.println("Fittest chromosome is: " + fittest.getFitness());
+            fitnessValues.add(fittest.getFitness());
 //            System.out.println("Population fitness is: " + population.getPopulationFitness());
 
             long l = System.currentTimeMillis();
@@ -69,7 +75,7 @@ public class GAController {
 
             gameStates = new ArrayList<>();
             l = System.currentTimeMillis();
-            ga.evalPopulationForStates(population, gameStates);
+            ga.evalPopulationForStates(population, gameStates, numberOfSimulationsToAvg);
 //            System.out.println("eval: " + (System.currentTimeMillis() - l));
         }
 
@@ -77,6 +83,6 @@ public class GAController {
 //        System.out.println(String.format("Best solution is: %s", population.getNthFittest(0).toString()));
 
 
-        return new Simulation(Evaluator.getField(), gameStates);
+        return new Simulation(Evaluator.getField(), gameStates, fitnessValues);
     }
 }
