@@ -1,4 +1,4 @@
-package com.falconsag.genetic.model;
+package com.falconsag.genetic.algorithms.model;
 
 import java.util.List;
 import java.util.Random;
@@ -17,11 +17,12 @@ public class Chromosome {
         this.genes = genes;
     }
 
+
     @Override
     public String toString() {
         return "Chromosome{" +
-                "genes=" + genes +
-                ", fitness=" + fitness +
+                "fitness=" + fitness +
+                ", genes=" + genes +
                 '}';
     }
 
@@ -37,7 +38,7 @@ public class Chromosome {
         this.fitness = fitness;
     }
 
-    public void flipGene(int index){
+    public void flipGene(int index) {
         genes.set(index, genes.get(index) ^ 1);
     }
 }

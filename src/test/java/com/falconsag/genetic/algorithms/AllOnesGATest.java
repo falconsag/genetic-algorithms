@@ -1,16 +1,10 @@
 package com.falconsag.genetic.algorithms;
 
-import com.falconsag.genetic.model.Chromosome;
-import com.falconsag.genetic.model.Population;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.falconsag.genetic.algorithms.model.Chromosome;
+import com.falconsag.genetic.algorithms.model.Population;
+import com.falconsag.genetic.algorithms.model.robot.GameState;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import org.apache.commons.collections4.iterators.PermutationIterator;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.is;

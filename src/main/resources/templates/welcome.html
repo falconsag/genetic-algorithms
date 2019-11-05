@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+<form action="/action_page.php">
+    Generation limit:<input type="text" name="genLimit" value="500"><br>
+    Number of simulate steps:<input type="text" name="numberOfSimulateSteps" value="500"><br>
+    Move cost:<input type="text" name="moveCost" value="5"><br>
+    Turn cost:<input type="text" name="turnCost" value="5"><br>
+    Do nothing cost:<input type="text" name="doNothingCost" value="5"><br>
+    <br>
+    Food min:<input type="text" name="foodMin" value="1000"><br>
+    Food max:<input type="text" name="foodMax" value="1500"><br>
+    Food decrease:<input type="text" name="foodDecrease" value="7"><br>
+    <br>
+    Maze size:<input type="text" name="mazeSize" value="7"><br>
+
+    <button id="generateButton" type="button" onclick="">Evolve</button>
+</form>
+<form>
+    <input id="slider" type="range" name="points" min="0" max="10" value="0" style="width:400px;">
+</form>
+
+<canvas id="myCanvas" width="600" height="600">
+
+</canvas>
+<script src="script.js"></script>
+</body>
+</html>
+

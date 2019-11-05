@@ -1,6 +1,6 @@
 package com.falconsag.genetic;
 
-import com.falconsag.genetic.model.Chromosome;
+import com.falconsag.genetic.algorithms.model.Chromosome;
 import com.google.common.collect.Iterables;
 import java.util.Arrays;
 import org.junit.Test;

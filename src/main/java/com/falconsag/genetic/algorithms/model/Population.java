@@ -1,4 +1,4 @@
-package com.falconsag.genetic.model;
+package com.falconsag.genetic.algorithms.model;
 
 import java.util.ArrayList;
 import java.util.List;
