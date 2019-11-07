@@ -60,7 +60,6 @@ public class RobotGA extends AbstractGA {
             calcFitness(chromosome, gameStates,tryNumber);
             return new ImmutablePair<>(chromosome, gameStates);
         }).sorted(Comparator.comparing(p -> p.getLeft().getFitness(), Comparator.reverseOrder())).map(i -> ImmutablePair.of(i.left.getFitness(), i.right)).collect(Collectors.toList());
-
         Optional<ImmutablePair<Double, List<GameState>>> reduced = collect.stream().reduce((i, j) -> ImmutablePair.of(i.left + j.left, i.right));
 
         double populationFitness = reduced.get().left;

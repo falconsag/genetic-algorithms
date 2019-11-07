@@ -1,7 +1,6 @@
 package com.falconsag.genetic.algorithms.model.robot;
 
 import static com.falconsag.genetic.algorithms.model.robot.Constants.*;
-import static com.falconsag.genetic.algorithms.robot.Evaluator.ROBOT_MAX_HP;
 import static com.falconsag.genetic.algorithms.robot.Evaluator.SIGHT_DISTANCE;
 
 public class Robot {
@@ -111,32 +110,32 @@ public class Robot {
     }
 
     private Coord getTurnLeft() {
-        if (dir == DIR_LEFT) {
+        if (dir.equals(DIR_LEFT)) {
             return DIR_DOWN;
         }
-        if (dir == DIR_DOWN) {
+        if (dir.equals(DIR_DOWN)) {
             return DIR_RIGHT;
         }
-        if (dir == DIR_RIGHT) {
+        if (dir.equals(DIR_RIGHT)) {
             return DIR_UP;
         }
-        if (dir == DIR_UP) {
+        if (dir.equals(DIR_UP)) {
             return DIR_LEFT;
         }
         return null;
     }
 
     private Coord getTurnRight() {
-        if (dir == DIR_LEFT) {
+        if (dir.equals(DIR_LEFT)) {
             return DIR_UP;
         }
-        if (dir == DIR_UP) {
+        if (dir.equals(DIR_UP)) {
             return DIR_RIGHT;
         }
-        if (dir == DIR_RIGHT) {
+        if (dir.equals(DIR_RIGHT)) {
             return DIR_DOWN;
         }
-        if (dir == DIR_DOWN) {
+        if (dir.equals(DIR_DOWN)) {
             return DIR_RIGHT;
         }
         return null;

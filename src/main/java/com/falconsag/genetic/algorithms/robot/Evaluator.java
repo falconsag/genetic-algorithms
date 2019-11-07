@@ -9,6 +9,7 @@ import com.falconsag.genetic.algorithms.model.robot.GameState;
 import com.falconsag.genetic.algorithms.model.robot.RandomInterval;
 import com.falconsag.genetic.algorithms.model.robot.Robot;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Random;
@@ -24,7 +25,7 @@ public class Evaluator {
     public static int MOVE_COST = 20;
     public static int DO_NOTHING_COST = 0;
     public static int NUMBER_OF_SIMULATE_STEPS = 10000;
-    public static int MAZE_SIZE = 15;
+    public static int MAZE_SIZE;
 
     public static int ROBOT_MAX_HP = 1000;
     public static final int SIGHT_DISTANCE = 3;
@@ -40,20 +41,33 @@ public class Evaluator {
     public static final double FOOD_SCORE = 100;
     public static final double MOVE_SCORE = 50;
 
+    private static List<Integer> freeIndexes = new ArrayList<>();
     private static RandomInterval RANDOM_FIELD_POSITION;
     private static RandomInterval RANDOM_FOOD_VALUE;
-    private Coord INITIAL_ROBOT_POS = new Coord(1, 3);
-    private Coord INITIAL_ROBOT_DIR = DIR_RIGHT;
+    public static Coord INITIAL_ROBOT_POS = new Coord(1, 3);
+    private static Coord INITIAL_ROBOT_DIR = DIR_RIGHT;
     public static int[] field;
 
     public static Deque<Food> FOOD_STACK;
     public Deque<Food> foodStack;
 
-    public static void init() {
-        FOOD_STACK = new ArrayDeque<>();
-        RANDOM_FIELD_POSITION = new RandomInterval(1, MAZE_SIZE - 2);
+    public static void init(int[] fieldConfig, Coord rCoord, Coord rDir, int mazeSize) {
+        MAZE_SIZE = mazeSize;
+        field = fieldConfig;
+        INITIAL_ROBOT_POS = rCoord;
+        INITIAL_ROBOT_DIR = rDir;
+
+
+        freeIndexes = new ArrayList<>();
+        for (int i = 0; i < fieldConfig.length; i++) {
+            if (fieldConfig[i] == 0) {
+                freeIndexes.add(i);
+            }
+        }
+        RANDOM_FIELD_POSITION = new RandomInterval(0, freeIndexes.size() - 1);
         RANDOM_FOOD_VALUE = new RandomInterval(FOOD_MIN_VAL, FOOD_MAX_VAL);
 
+        FOOD_STACK = new ArrayDeque<>();
         for (int i = 0; i < 0; i++) {
             Coord coord = new Coord(RANDOM_FIELD_POSITION.getRandom(), RANDOM_FIELD_POSITION.getRandom());
             FOOD_STACK.add(new Food(coord, RANDOM_FOOD_VALUE.getRandom()));
@@ -62,13 +76,6 @@ public class Evaluator {
 
     public Evaluator(Chromosome algo) {
         this.algo = algo;
-        field = new int[MAZE_SIZE * MAZE_SIZE];
-        for (int i = 0; i < MAZE_SIZE; i++) {
-            field[getIndex(i, 0)] = WALL_FIELD;
-            field[getIndex(0, i)] = WALL_FIELD;
-            field[getIndex(i, MAZE_SIZE - 1)] = WALL_FIELD;
-            field[getIndex(MAZE_SIZE - 1, i)] = WALL_FIELD;
-        }
         foodStack = new ArrayDeque<>();
         for (Food food : FOOD_STACK) {
             foodStack.add(food.clone());
@@ -242,7 +249,8 @@ public class Evaluator {
     }
 
     private Food getRandomFood() {
-        Coord coord = new Coord(RANDOM_FIELD_POSITION.getRandom(), RANDOM_FIELD_POSITION.getRandom());
+        Integer freeI = freeIndexes.get(RANDOM_FIELD_POSITION.getRandom());
+        Coord coord = iToXY(freeI);
         return new Food(coord, RANDOM_FOOD_VALUE.getRandom());
     }
 
@@ -252,6 +260,10 @@ public class Evaluator {
 
     private static int getIndex(int x, int y) {
         return y * MAZE_SIZE + x;
+    }
+
+    private static Coord iToXY(int i) {
+        return new Coord(i % MAZE_SIZE, i / MAZE_SIZE);
     }
 
     private static int getIndex(Coord coord) {

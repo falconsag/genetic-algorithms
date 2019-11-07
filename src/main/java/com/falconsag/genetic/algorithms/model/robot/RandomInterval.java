@@ -14,6 +14,10 @@ public class RandomInterval {
         this.upperBound = upperBound;
     }
 
+    /**
+     * includes upperbound
+     * @return
+     */
     public int getRandom() {
         return rand.nextInt(upperBound - lowerBound + 1) + lowerBound;
     }
