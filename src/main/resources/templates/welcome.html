@@ -3,6 +3,7 @@
 <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/patternomaly@1.3.0/dist/patternomaly.js"></script>
 </head>
 <body>
 
@@ -49,6 +50,55 @@
     <canvas id="fitnessChart"></canvas>
 </div>
 <script src="script.js"></script>
+
+
+
+
+
+
+<!--<canvas id="myChart2" width="200" height="200"></canvas>-->
+<!--<script>-->
+
+<!--    var values=[0.5,1]-->
+
+<!--    var notations = {-->
+<!--        0: "",-->
+<!--        0.5: "",-->
+<!--        1: "outstanding",-->
+<!--    }-->
+<!--    var ctx = document.getElementById('myChart2').getContext('2d');-->
+<!--    var myChart = new Chart(ctx, {-->
+<!--        type: 'radar',-->
+<!--        data: {-->
+<!--            labels: Array(20).fill().map(function(){ return ""}),-->
+<!--            datasets: [{-->
+<!--                label: 'genes',-->
+<!--                data: Array(20).fill().map(function(){ return values[Math.round(Math.random())]}),-->
+<!--                borderWidth: 1,-->
+<!--                backgroundColor: 'rgba(53, 222, 164, 0.74)'-->
+
+<!--            }]-->
+<!--        },-->
+<!--        options: {-->
+<!--            scale: {-->
+<!--                ticks: {-->
+<!--                    beginAtZero: true,-->
+<!--                    callback: function(){return ""}-->
+<!--                }-->
+<!--            },-->
+<!--            maintainAspectRatio: true,-->
+<!--            spanGaps: false,-->
+<!--            elements: {-->
+<!--                line: {-->
+<!--                    tension: 0.3-->
+<!--                }-->
+<!--            }-->
+<!--        }-->
+<!--    });-->
+<!--</script>-->
+
+
+
 
 </body>
 </html>

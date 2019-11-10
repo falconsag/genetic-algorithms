@@ -1,15 +1,14 @@
 package com.falconsag.genetic.algorithms;
 
 import com.falconsag.genetic.algorithms.model.Chromosome;
+import com.falconsag.genetic.algorithms.model.GeneticConfiguration;
 import com.falconsag.genetic.algorithms.model.Population;
+import com.falconsag.genetic.algorithms.model.robot.GameSimulation;
 import com.falconsag.genetic.algorithms.model.robot.GameState;
 import com.falconsag.genetic.algorithms.robot.Evaluator;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class RobotGA extends AbstractGA {
 
@@ -31,23 +30,23 @@ public class RobotGA extends AbstractGA {
         return 0;
     }
 
-    public double calcFitness(Chromosome chromosome, List<GameState> gameStates, int tryNumber) {
+    public GameSimulation calcFitness(Chromosome chromosome, ConcurrentLinkedDeque<GameSimulation> simulations, GeneticConfiguration config) {
+        int tryNumber = config.getSimulatorConfig().getNumberOfSimulationsToAvg();
         double sumFitness = 0;
         double bestFitness = 0;
+        GameSimulation bestGameSimulation = null;
         for (int i = 0; i < tryNumber; i++) {
-            ArrayList<GameState> currentGameStates = new ArrayList<>();
-//            double fitness = new Evaluator(chromosome).evaluate(currentGameStates);
-            double fitness = 0;
+            GameSimulation gameSimulation = new Evaluator(config, chromosome).evaluate(simulations);
+            double fitness = gameSimulation.getFitness();
             sumFitness += fitness;
             if (fitness >= bestFitness) {
                 bestFitness = fitness;
-                gameStates.clear();
-                gameStates.addAll(currentGameStates);
+                bestGameSimulation = gameSimulation;
             }
         }
         double avgFitness = sumFitness / (double) tryNumber;
         chromosome.setFitness(avgFitness);
-        return avgFitness;
+        return new GameSimulation(bestGameSimulation.getGameStates(), avgFitness);
     }
 
     @Override
@@ -55,17 +54,18 @@ public class RobotGA extends AbstractGA {
 
     }
 
-    public void evalPopulationForStates(Population population, List<GameState> states, int tryNumber) {
-        List<ImmutablePair<Double, List<GameState>>> collect = population.getChromosomes().stream().map(chromosome -> {
-            List<GameState> gameStates = new ArrayList<>();
-            calcFitness(chromosome, gameStates,tryNumber);
-            return new ImmutablePair<>(chromosome, gameStates);
-        }).sorted(Comparator.comparing(p -> p.getLeft().getFitness(), Comparator.reverseOrder())).map(i -> ImmutablePair.of(i.left.getFitness(), i.right)).collect(Collectors.toList());
-        Optional<ImmutablePair<Double, List<GameState>>> reduced = collect.stream().reduce((i, j) -> ImmutablePair.of(i.left + j.left, i.right));
-
-        double populationFitness = reduced.get().left;
+    public void evalPopulationForStates(Population population, ConcurrentLinkedDeque<GameSimulation> simulations, int tryNumber, GeneticConfiguration config) {
+        double populationFitness = 0;
+        GameSimulation bestGameSimulation = null;
+        for (Chromosome chromosome : population.getChromosomes()) {
+            GameSimulation gameSimulation = calcFitness(chromosome, simulations, config);
+            if (bestGameSimulation == null || gameSimulation.getFitness() > bestGameSimulation.getFitness()) {
+                bestGameSimulation = gameSimulation;
+            }
+            populationFitness += gameSimulation.getFitness();
+        }
         population.setPopulationFitness(populationFitness);
-        states.addAll(reduced.get().right);
+        simulations.add(bestGameSimulation);
     }
 
     @Override

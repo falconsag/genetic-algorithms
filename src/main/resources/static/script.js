@@ -24,6 +24,9 @@ var fitnessChart
 var animationMs = getAnimationMS()
 var isAnimation = false;
 
+var genLimit = 0;
+var evolving = false;
+
 var editor = {
     editorMode: isEditorChecked(),
     painting: false,
@@ -54,8 +57,27 @@ function getMousePosition(canvas, event) {
 
 
 $("#generateButton").on("click", function () {
+    evolving = true;
+
+    var getSimulationsFnct = function getSimulations() {
+        $.ajax({
+            contentType: 'application/json',
+            dataType: 'json',
+            success: function (resp) {
+                console.log(resp.length)
+                if (resp.length < genLimit) {
+                    setTimeout(getSimulationsFnct, 50);
+                }
+            },
+            type: 'GET',
+            url: "http://localhost:8080/getSimulations"
+        })
+    }
+    setTimeout(getSimulationsFnct, 50);
+
+
     disableEditorMode();
-    var genLimit = $("input[name='genLimit']").val();
+    genLimit = $("input[name='genLimit']").val();
     var moveCost = $("input[name='moveCost']").val();
     var turnCost = $("input[name='turnCost']").val();
     var doNothing = $("input[name='doNothingCost']").val();
@@ -69,7 +91,7 @@ $("#generateButton").on("click", function () {
 
     var req = {
         editorConfig: editor,
-        simulatorConfig:{
+        simulatorConfig: {
             genLimit: genLimit,
             moveCost: moveCost,
             turnCost: turnCost,
@@ -89,6 +111,7 @@ $("#generateButton").on("click", function () {
         data: JSON.stringify(req),
         dataType: 'json',
         success: function (simulationResponse) {
+            evolving = false;
             simulation = simulationResponse
             sliderVal = 0
             slider.val(sliderVal)

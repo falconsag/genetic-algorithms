@@ -1,5 +1,6 @@
 package com.falconsag.genetic.algorithms.robot;
 
+import com.falconsag.genetic.algorithms.model.Chromosome;
 import com.falconsag.genetic.algorithms.model.EditorConfiguration;
 import com.falconsag.genetic.algorithms.model.GeneticConfiguration;
 import com.falconsag.genetic.algorithms.model.SimulatorConfiguration;
@@ -11,7 +12,6 @@ import com.falconsag.genetic.algorithms.model.robot.GameSimulation;
 import com.falconsag.genetic.algorithms.model.robot.GameState;
 import com.falconsag.genetic.algorithms.model.robot.RandomInterval;
 import com.falconsag.genetic.algorithms.model.robot.Robot;
-import io.jenetics.BitChromosome;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class Evaluator {
 
-    private BitChromosome chromosome;
+    private Chromosome chromosome;
     private SimulatorConfiguration simulatorConfig;
     private EditorConfiguration editorConfig;
     private GeneticConfiguration config;
@@ -57,7 +57,7 @@ public class Evaluator {
 
     public static int counter = 0;
 
-    public Evaluator(GeneticConfiguration config, BitChromosome chromosome) {
+    public Evaluator(GeneticConfiguration config, Chromosome chromosome) {
         counter++;
         this.chromosome = chromosome;
         this.config = config;
@@ -97,7 +97,7 @@ public class Evaluator {
     }
 
 
-    public double evaluate(ConcurrentLinkedDeque<GameSimulation> simulations) {
+    public GameSimulation evaluate(ConcurrentLinkedDeque<GameSimulation> simulations) {
         this.simulationsDeque = simulations;
         List<GameState> gameStates = new ArrayList<GameState>();
         Robot robot = new Robot(ROBOT_MAX_HP, initialRobotPos, initialRobotDir);
@@ -115,8 +115,8 @@ public class Evaluator {
                 } else {
                     fitness = 0;
                 }
-                simulationsDeque.add(new GameSimulation(gameStates, fitness));
-                return fitness;
+//                simulationsDeque.add(new GameSimulation(gameStates, fitness));
+                return new GameSimulation(gameStates, fitness);
             }
             appendGameState(gameStates, robot, food, getSensorIndexBitmap(robot, food));
             int sensorIndexBitmap = getSensorIndexBitmap(robot, food);
@@ -145,8 +145,10 @@ public class Evaluator {
             i++;
         }
         appendGameState(gameStates, robot, food, null);
-        simulationsDeque.add(new GameSimulation(gameStates, fitness));
-        return fitness;
+//        simulationsDeque.add(new GameSimulation(gameStates, fitness));
+
+        return new GameSimulation(gameStates, fitness);
+//        return fitness;
     }
 
 
@@ -222,10 +224,15 @@ public class Evaluator {
 
     private Action getRobotAction(int sensorIndexBitmap) {
 
-        int firstBit = chromosome.getGene(sensorIndexBitmap).getAllele() ? 1 : 0;
-        int secondBit = chromosome.getGene(sensorIndexBitmap + 1).getAllele() ? 1 : 0;
 
-        int actionOrdinal = firstBit * 2 + secondBit;
+        List<Integer> genes = chromosome.getGenes();
+        int actionOrdinal = genes.get(sensorIndexBitmap) * 2 + genes.get(sensorIndexBitmap + 1);
+
+
+//        int firstBit = chromosome.getGene(sensorIndexBitmap).getAllele() ? 1 : 0;
+//        int secondBit = chromosome.getGene(sensorIndexBitmap + 1).getAllele() ? 1 : 0;
+
+//        int actionOrdinal = firstBit * 2 + secondBit;
         Action action = Action.values()[actionOrdinal];
 
 
