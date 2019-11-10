@@ -36,7 +36,8 @@ public class RobotGA extends AbstractGA {
         double bestFitness = 0;
         for (int i = 0; i < tryNumber; i++) {
             ArrayList<GameState> currentGameStates = new ArrayList<>();
-            double fitness = new Evaluator(chromosome).evaluate(currentGameStates);
+//            double fitness = new Evaluator(chromosome).evaluate(currentGameStates);
+            double fitness = 0;
             sumFitness += fitness;
             if (fitness >= bestFitness) {
                 bestFitness = fitness;

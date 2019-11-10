@@ -6,23 +6,25 @@ import java.util.List;
 
 public class Simulation {
     private List<Double> fitnessValues;
-    private int[] fields;
+    private List<Integer> fields;
     private List<GameState> states = new ArrayList<>();
-    private int foodMaxValue = Evaluator.FOOD_MAX_VAL;
-    private int foodDecreaseValue = Evaluator.FODD_VALUE_DECREASE;
+    private int foodMaxValue;
+    private int foodDecreaseValue;
     private int sightDistance = Evaluator.SIGHT_DISTANCE;
 
-    public Simulation(int[] fields, List<GameState> states, List<Double> fitnessValues) {
+    public Simulation(List<Integer> fields, List<GameState> states, List<Double> fitnessValues, int foodMaxValue, int foodDecreaseValue) {
         this.fields = fields;
         this.states = states;
         this.fitnessValues = fitnessValues;
+        this.foodMaxValue = foodMaxValue;
+        this.foodDecreaseValue = foodDecreaseValue;
     }
 
     public void addGameState(GameState gameState) {
         this.states.add(gameState);
     }
 
-    public int[] getFields() {
+    public List<Integer> getFields() {
         return fields;
     }
 

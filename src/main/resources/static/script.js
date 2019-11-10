@@ -66,19 +66,27 @@ $("#generateButton").on("click", function () {
     var mazeSize = getMazeSize();
     var numberOfSimulationsToAvg = $("input[name='numberOfSimulationsToAvg']").val();
 
-    var url = "http://localhost:8080/evolve?genLimit=" + genLimit
-        + "&moveCost=" + moveCost
-        + "&turnCost=" + turnCost
-        + "&doNothingCost=" + doNothing
-        + "&numberOfSimulateSteps=" + numberOfSimulateSteps
-        + "&foodMin=" + foodMin
-        + "&foodMax=" + foodMax
-        + "&foodDecrease=" + foodDecrease
-        + "&numberOfSimulationsToAvg=" + numberOfSimulationsToAvg
+
+    var req = {
+        editorConfig: editor,
+        simulatorConfig:{
+            genLimit: genLimit,
+            moveCost: moveCost,
+            turnCost: turnCost,
+            doNothingCost: doNothing,
+            numberOfSimulateSteps: numberOfSimulateSteps,
+            foodMin: foodMin,
+            foodMax: foodMax,
+            foodDecrease: foodDecrease,
+            numberOfSimulationsToAvg: numberOfSimulationsToAvg
+        }
+    }
+
+    var url = "http://localhost:8080/evolve"
 
     $.ajax({
         contentType: 'application/json',
-        data: JSON.stringify(editor),
+        data: JSON.stringify(req),
         dataType: 'json',
         success: function (simulationResponse) {
             simulation = simulationResponse

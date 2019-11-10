@@ -1,35 +1,42 @@
 package com.falconsag.genetic.algorithms.robot;
 
-import com.falconsag.genetic.algorithms.model.Chromosome;
+import com.falconsag.genetic.algorithms.model.EditorConfiguration;
+import com.falconsag.genetic.algorithms.model.GeneticConfiguration;
+import com.falconsag.genetic.algorithms.model.SimulatorConfiguration;
 import com.falconsag.genetic.algorithms.model.robot.Action;
 import static com.falconsag.genetic.algorithms.model.robot.Constants.*;
 import com.falconsag.genetic.algorithms.model.robot.Coord;
 import com.falconsag.genetic.algorithms.model.robot.Food;
+import com.falconsag.genetic.algorithms.model.robot.GameSimulation;
 import com.falconsag.genetic.algorithms.model.robot.GameState;
 import com.falconsag.genetic.algorithms.model.robot.RandomInterval;
 import com.falconsag.genetic.algorithms.model.robot.Robot;
+import io.jenetics.BitChromosome;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class Evaluator {
 
-    private Chromosome algo;
-
-    public static int FOOD_MIN_VAL = 1500;
-    public static int FOOD_MAX_VAL = 2000;
-    public static int FODD_VALUE_DECREASE = 100;
-    public static int TURN_COST = 10;
-    public static int MOVE_COST = 20;
-    public static int DO_NOTHING_COST = 0;
-    public static int NUMBER_OF_SIMULATE_STEPS = 10000;
-    public static int MAZE_SIZE;
+    private BitChromosome chromosome;
+    private SimulatorConfiguration simulatorConfig;
+    private EditorConfiguration editorConfig;
+    private GeneticConfiguration config;
+    public int foodMinVal = 1500;
+    public int foodMaxVal = 2000;
+    public int foodValueDecrease = 100;
+    public int turnCost = 10;
+    public int moveCost = 20;
+    public int doNothingCost = 0;
+    public int numberOfSimulateSteps = 10000;
+    public int mazeSize;
 
     public static int ROBOT_MAX_HP = 1000;
     public static final int SIGHT_DISTANCE = 3;
-    private static final Random rand = new Random();
+    private final Random rand = new Random();
     //BITMAP
     // distX  distY  ahead  rHP  fHP
     //  000    000    00    00   00
@@ -37,45 +44,52 @@ public class Evaluator {
     private static final int BITMASK_AHEAD = 0b000000110000;
     private static final int BITMASK_RHP = 0b000000001100;
     private static final int BITMASK_FHP = 0b000000000011;
-
-    public static final double FOOD_SCORE = 100;
-    public static final double MOVE_SCORE = 50;
-
-    private static List<Integer> freeIndexes = new ArrayList<>();
-    private static RandomInterval RANDOM_FIELD_POSITION;
-    private static RandomInterval RANDOM_FOOD_VALUE;
-    public static Coord INITIAL_ROBOT_POS = new Coord(1, 3);
-    private static Coord INITIAL_ROBOT_DIR = DIR_RIGHT;
-    public static int[] field;
-
-    public static Deque<Food> FOOD_STACK;
+    public final double MOVE_SCORE = 50;
+    private List<Integer> freeIndexes = new ArrayList<>();
+    private RandomInterval randomFieldPositionGenerator;
+    private RandomInterval randomFoodValueGenerator;
+    private Coord initialRobotPos;
+    private Coord initialRobotDir;
+    public List<Integer> fields;
+    public Deque<Food> FOOD_STACK;
     public Deque<Food> foodStack;
+    private ConcurrentLinkedDeque<GameSimulation> simulationsDeque;
 
-    public static void init(int[] fieldConfig, Coord rCoord, Coord rDir, int mazeSize) {
-        MAZE_SIZE = mazeSize;
-        field = fieldConfig;
-        INITIAL_ROBOT_POS = rCoord;
-        INITIAL_ROBOT_DIR = rDir;
+    public static int counter = 0;
 
+    public Evaluator(GeneticConfiguration config, BitChromosome chromosome) {
+        counter++;
+        this.chromosome = chromosome;
+        this.config = config;
+        this.editorConfig = config.getEditorConfig();
+        this.simulatorConfig = config.getSimulatorConfig();
 
+        fields = config.getEditorConfig().getMapArr();
+        initialRobotPos = new Coord(editorConfig.getRobot().getX(), editorConfig.getRobot().getY());
+        initialRobotDir = new Coord(editorConfig.getRobot().getDirX(), editorConfig.getRobot().getDirY());
+        mazeSize = editorConfig.getMazeSize();
         freeIndexes = new ArrayList<>();
-        for (int i = 0; i < fieldConfig.length; i++) {
-            if (fieldConfig[i] == 0) {
+        for (int i = 0; i < fields.size(); i++) {
+            if (fields.get(i) == 0) {
                 freeIndexes.add(i);
             }
         }
-        RANDOM_FIELD_POSITION = new RandomInterval(0, freeIndexes.size() - 1);
-        RANDOM_FOOD_VALUE = new RandomInterval(FOOD_MIN_VAL, FOOD_MAX_VAL);
+        randomFieldPositionGenerator = new RandomInterval(0, freeIndexes.size() - 1);
+        foodMaxVal = simulatorConfig.getFoodMax();
+        foodMinVal = simulatorConfig.getFoodMin();
+        randomFoodValueGenerator = new RandomInterval(foodMinVal, foodMaxVal);
+        foodValueDecrease = simulatorConfig.getFoodDecrease();
+        turnCost = simulatorConfig.getTurnCost();
+        moveCost = simulatorConfig.getMoveCost();
+        doNothingCost = simulatorConfig.getDoNothingCost();
+        numberOfSimulateSteps = simulatorConfig.getNumberOfSimulateSteps();
 
+        //legacy to preprogram some initial food positions
         FOOD_STACK = new ArrayDeque<>();
-        for (int i = 0; i < 0; i++) {
-            Coord coord = new Coord(RANDOM_FIELD_POSITION.getRandom(), RANDOM_FIELD_POSITION.getRandom());
-            FOOD_STACK.add(new Food(coord, RANDOM_FOOD_VALUE.getRandom()));
-        }
-    }
-
-    public Evaluator(Chromosome algo) {
-        this.algo = algo;
+//        for (int i = 0; i < 0; i++) {
+//            Coord coord = new Coord(RANDOM_FIELD_POSITION.getRandom(), RANDOM_FIELD_POSITION.getRandom());
+//            FOOD_STACK.add(new Food(coord, RANDOM_FOOD_VALUE.getRandom()));
+//        }
         foodStack = new ArrayDeque<>();
         for (Food food : FOOD_STACK) {
             foodStack.add(food.clone());
@@ -83,22 +97,26 @@ public class Evaluator {
     }
 
 
-    public double evaluate(List<GameState> gameStates) {
-        Robot robot = new Robot(ROBOT_MAX_HP, INITIAL_ROBOT_POS, INITIAL_ROBOT_DIR);
+    public double evaluate(ConcurrentLinkedDeque<GameSimulation> simulations) {
+        this.simulationsDeque = simulations;
+        List<GameState> gameStates = new ArrayList<GameState>();
+        Robot robot = new Robot(ROBOT_MAX_HP, initialRobotPos, initialRobotDir);
         int i = 0;
         long accumHP = ROBOT_MAX_HP;
         Food food = getFood(foodStack);
         int fitness = 0;
         double sumEnergyUsed = 0;
         int foodConsumeCount = 0;
-        while (i < NUMBER_OF_SIMULATE_STEPS) {
-            if (field[getIndex(robot.getCoord())] == WALL_FIELD || robot.isOutOfEnergy()) {
+        while (i < numberOfSimulateSteps) {
+            if (fields.get(getIndex(robot.getCoord())) == WALL_FIELD || robot.isOutOfEnergy()) {
                 appendGameState(gameStates, robot, food, null);
                 if (robot.isOutOfEnergy()) {
-                    return fitness / 2;
+                    fitness = fitness / 2;
                 } else {
-                    return 0;
+                    fitness = 0;
                 }
+                simulationsDeque.add(new GameSimulation(gameStates, fitness));
+                return fitness;
             }
             appendGameState(gameStates, robot, food, getSensorIndexBitmap(robot, food));
             int sensorIndexBitmap = getSensorIndexBitmap(robot, food);
@@ -121,12 +139,13 @@ public class Evaluator {
             if (food.isEmpty()) {
                 food = getFood(foodStack);
             }
-            food.decreaseValue(FODD_VALUE_DECREASE);
+            food.decreaseValue(foodValueDecrease);
 
             accumHP += robot.getHp();
             i++;
         }
         appendGameState(gameStates, robot, food, null);
+        simulationsDeque.add(new GameSimulation(gameStates, fitness));
         return fitness;
     }
 
@@ -134,11 +153,11 @@ public class Evaluator {
     private int getCostOfAction(Action a) {
         switch (a) {
             case NOTHING:
-                return DO_NOTHING_COST;
+                return doNothingCost;
             case FORWARD:
-                return MOVE_COST;
+                return moveCost;
             default:
-                return TURN_COST;
+                return turnCost;
         }
     }
 
@@ -194,7 +213,7 @@ public class Evaluator {
     private int getSensorIndexBitmap(Robot robot, Food food) {
         int sensorBitmap = robot.getSensorBitmap(food.getCoord());
         Coord coordAhead = Coord.add(robot.getCoord(), robot.getDir());
-        int aheadBitmap = getAheadBitmap(field[getIndex(coordAhead)]);
+        int aheadBitmap = getAheadBitmap(fields.get(getIndex(coordAhead)));
         int rHPbitmap = Robot.percentBitmap(robot.getHp(), ROBOT_MAX_HP);
         int fHPbitmap = getfoodValBitmap(food, sensorBitmap);
         int sensorIndexBitmap = ((sensorBitmap << 2 | aheadBitmap) << 2 | rHPbitmap) << 2 | fHPbitmap;
@@ -202,9 +221,34 @@ public class Evaluator {
     }
 
     private Action getRobotAction(int sensorIndexBitmap) {
-        List<Integer> genes = algo.getGenes();
-        int actionOrdinal = genes.get(sensorIndexBitmap) * 2 + genes.get(sensorIndexBitmap + 1);
+
+        int firstBit = chromosome.getGene(sensorIndexBitmap).getAllele() ? 1 : 0;
+        int secondBit = chromosome.getGene(sensorIndexBitmap + 1).getAllele() ? 1 : 0;
+
+        int actionOrdinal = firstBit * 2 + secondBit;
         Action action = Action.values()[actionOrdinal];
+
+
+//        int lowerBitValue = sensorIndexBitmap & 3;
+//        if (lowerBitValue == 0) {
+//            return getRandomAction(Action.values());
+//        } else if (lowerBitValue == 1) {
+//            double movePct = 0.5;
+//            if (rand.nextDouble() < movePct) {
+//                return Action.FORWARD;
+//            } else {
+//                return getRandomAction(new Action[]{Action.NOTHING, Action.TURN_LEFT, Action.TURN_RIGHT});
+//            }
+//        } else if (lowerBitValue == 2) {
+//            double movePct = 0.9;
+//            if (rand.nextDouble() < movePct) {
+//                return Action.FORWARD;
+//            } else {
+//                return getRandomAction(new Action[]{Action.NOTHING, Action.TURN_LEFT, Action.TURN_RIGHT});
+//            }
+//        } else {
+//            return action;
+//        }
 
         boolean nothingAhead = isObjectAhead(sensorIndexBitmap, 0);
         boolean wallAhead = isObjectAhead(sensorIndexBitmap, WALL_CODING);
@@ -249,58 +293,58 @@ public class Evaluator {
     }
 
     private Food getRandomFood() {
-        Integer freeI = freeIndexes.get(RANDOM_FIELD_POSITION.getRandom());
+        Integer freeI = freeIndexes.get(randomFieldPositionGenerator.getRandom());
         Coord coord = iToXY(freeI);
-        return new Food(coord, RANDOM_FOOD_VALUE.getRandom());
+        return new Food(coord, randomFoodValueGenerator.getRandom());
     }
 
-    public static int[] getField() {
-        return field;
+    public List<Integer> getFields() {
+        return fields;
     }
 
-    private static int getIndex(int x, int y) {
-        return y * MAZE_SIZE + x;
+    private int getIndex(int x, int y) {
+        return y * mazeSize + x;
     }
 
-    private static Coord iToXY(int i) {
-        return new Coord(i % MAZE_SIZE, i / MAZE_SIZE);
+    private Coord iToXY(int i) {
+        return new Coord(i % mazeSize, i / mazeSize);
     }
 
-    private static int getIndex(Coord coord) {
+    private int getIndex(Coord coord) {
         return getIndex(coord.getX(), coord.getY());
     }
 
-    public static void setDoNothingCost(int doNothingCost) {
-        DO_NOTHING_COST = doNothingCost;
+    public void setDoNothingCost(int doNothingCost) {
+        this.doNothingCost = doNothingCost;
     }
 
-    public static void setTurnCost(int turnCost) {
-        TURN_COST = turnCost;
+    public void setTurnCost(int turnCost) {
+        this.turnCost = turnCost;
     }
 
-    public static void setMoveCost(int moveCost) {
-        MOVE_COST = moveCost;
+    public void setMoveCost(int moveCost) {
+        this.moveCost = moveCost;
     }
 
-    public static void setNumberOfSimulationSteps(int numberOfSimulationSteps) {
-        NUMBER_OF_SIMULATE_STEPS = numberOfSimulationSteps;
+    public void setNumberOfSimulationSteps(int numberOfSimulationSteps) {
+        numberOfSimulateSteps = numberOfSimulationSteps;
     }
 
-    public static void setFoodMin(int foodMin) {
-        FOOD_MIN_VAL = foodMin;
+    public void setFoodMin(int foodMin) {
+        foodMinVal = foodMin;
     }
 
-    public static void setFoodMax(int foodMax) {
-        FOOD_MAX_VAL = foodMax;
+    public void setFoodMax(int foodMax) {
+        foodMaxVal = foodMax;
     }
 
-    public static void setFoodDecrease(int foodDecrease) {
-        FODD_VALUE_DECREASE = foodDecrease;
+    public void setFoodDecrease(int foodDecrease) {
+        foodValueDecrease = foodDecrease;
     }
 
 
-    public static void setMazeSize(int mazeSize) {
-        MAZE_SIZE = mazeSize;
+    public void setMazeSize(int mazeSize) {
+        this.mazeSize = mazeSize;
     }
 
 }
