@@ -3,12 +3,11 @@ package com.falconsag.genetic.algorithms.controllers;
 import com.falconsag.genetic.algorithms.RobotGA;
 import com.falconsag.genetic.algorithms.model.Chromosome;
 import com.falconsag.genetic.algorithms.model.GeneticConfiguration;
+import com.falconsag.genetic.algorithms.model.Phenotype;
 import com.falconsag.genetic.algorithms.model.Population;
 import com.falconsag.genetic.algorithms.model.robot.GameSimulation;
 import com.falconsag.genetic.algorithms.model.robot.Simulation;
-import io.jenetics.BitChromosome;
-import io.jenetics.BitGene;
-import io.jenetics.Genotype;
+import com.falconsag.genetic.algorithms.robot.Evaluator;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,25 +22,18 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class GAController {
     private static final int GENE_LENGTH = (int) Math.pow(2, 12);
-    private ConcurrentLinkedDeque<GameSimulation> simulations;
+    private ConcurrentLinkedDeque<GameSimulation> simulations = new ConcurrentLinkedDeque<>();
 
     @GetMapping("/")
     public String hi() {
         return "welcome";
     }
 
-    private List<Double> fitnessValues;
-
-
-    public Integer count(Genotype<BitGene> gt) {
-        return gt.getChromosome().as(BitChromosome.class).bitCount();
-    }
-
 
     @GetMapping(value = "/getSimulations", produces = "application/json")
     @ResponseBody
-    public List<Double> getSimulations(){
-        return simulations.stream().map(i->i.getFitness()).collect(Collectors.toList());
+    public List<Phenotype> getSimulations() {
+        return simulations.stream().map(Phenotype::new).collect(Collectors.toList());
     }
 
     @PostMapping(value = "/evolve", produces = "application/json", consumes = "application/json")
@@ -82,7 +74,7 @@ public class GAController {
 
                 int rem = (genLimit - generationCounter) / 10;
                 double remSecs = (rem * procMs) / (double) 1000;
-                System.out.println("estimated remaining time: " + nowOD.plusSeconds((int) remSecs));
+                System.out.println("Estimated finish time: " + nowOD.plusSeconds((int) remSecs));
                 System.out.println("Fittest chromosome is: " + fittest.getFitness());
                 prevT = now;
             }
@@ -101,6 +93,17 @@ public class GAController {
                               config.getSimulatorConfig().getFoodMax(),
                               config.getSimulatorConfig().getFoodDecrease());
 
+    }
+
+    @PostMapping(value = "/simulate", produces = "application/json", consumes = "application/json")
+    @ResponseBody
+    public Simulation random(@RequestBody GeneticConfiguration config) {
+        simulations = new ConcurrentLinkedDeque<>();
+        simulations.add(new Evaluator(config, new Chromosome(config.getGenes())).evaluate(simulations));
+        return new Simulation(config.getEditorConfig().getMapArr(), simulations.getLast().getGameStates(),
+                              simulations.stream().map(i -> i.getFitness()).collect(Collectors.toList()),
+                              config.getSimulatorConfig().getFoodMax(),
+                              config.getSimulatorConfig().getFoodDecrease());
     }
 
     private long getCurrentMillis() {

@@ -1,14 +1,21 @@
 package com.falconsag.genetic.algorithms.model.robot;
 
+import com.falconsag.genetic.algorithms.model.Chromosome;
 import java.util.List;
 
 public class GameSimulation {
-    public List<GameState> gameStates;
-    public double fitness;
+    private List<GameState> gameStates;
+    private double fitness;
+    private Chromosome chromosome;
 
-    public GameSimulation(List<GameState> gameStates, double fitness) {
+    public GameSimulation(List<GameState> gameStates, double fitness, Chromosome chromosome) {
         this.gameStates = gameStates;
         this.fitness = fitness;
+        this.chromosome = chromosome;
+    }
+
+    public Chromosome getChromosome() {
+        return chromosome;
     }
 
     public List<GameState> getGameStates() {

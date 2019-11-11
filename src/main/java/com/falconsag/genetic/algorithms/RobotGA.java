@@ -4,7 +4,6 @@ import com.falconsag.genetic.algorithms.model.Chromosome;
 import com.falconsag.genetic.algorithms.model.GeneticConfiguration;
 import com.falconsag.genetic.algorithms.model.Population;
 import com.falconsag.genetic.algorithms.model.robot.GameSimulation;
-import com.falconsag.genetic.algorithms.model.robot.GameState;
 import com.falconsag.genetic.algorithms.robot.Evaluator;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +45,7 @@ public class RobotGA extends AbstractGA {
         }
         double avgFitness = sumFitness / (double) tryNumber;
         chromosome.setFitness(avgFitness);
-        return new GameSimulation(bestGameSimulation.getGameStates(), avgFitness);
+        return new GameSimulation(bestGameSimulation.getGameStates(), avgFitness, bestGameSimulation.getChromosome());
     }
 
     @Override

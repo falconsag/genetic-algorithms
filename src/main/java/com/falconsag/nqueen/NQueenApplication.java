@@ -16,7 +16,7 @@ public class NQueenApplication {
 
     public static void main(String[] args) {
 //        IntStream.range(0, 50).forEach(value -> executeMeasured(new PrePermutedSolver()));
-        IntStream.rangeClosed(4, 15).forEach(value -> executeMeasuredCustom(new BackTrackingSolver(), value));
+        IntStream.rangeClosed(6, 40).forEach(value -> executeMeasuredCustom(new BackTrackingSolver(), value));
     }
 
     private static void executeMeasuredCustom(BackTrackingSolver solver,int size) {

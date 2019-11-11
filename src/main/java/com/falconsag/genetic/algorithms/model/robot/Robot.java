@@ -1,6 +1,7 @@
 package com.falconsag.genetic.algorithms.model.robot;
 
 import static com.falconsag.genetic.algorithms.model.robot.Constants.*;
+import static com.falconsag.genetic.algorithms.robot.Evaluator.ROBOT_MAX_HP;
 import static com.falconsag.genetic.algorithms.robot.Evaluator.SIGHT_DISTANCE;
 
 public class Robot {
@@ -98,11 +99,11 @@ public class Robot {
 
     public static int percentBitmap(int val, int maxVal) {
         double v = (double) val / maxVal;
-        if (v < 0.05) {
+        if (v < 0.2) {
             return _0_5_PERCENT;
-        } else if (v < 0.15) {
+        } else if (v < 0.5) {
             return _5_15_PERCENT;
-        } else if (v < 0.60) {
+        } else if (v < 0.80) {
             return _15_60_PERCENT;
         } else {
             return _60_100_PERCENT;

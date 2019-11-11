@@ -115,8 +115,7 @@ public class Evaluator {
                 } else {
                     fitness = 0;
                 }
-//                simulationsDeque.add(new GameSimulation(gameStates, fitness));
-                return new GameSimulation(gameStates, fitness);
+                return new GameSimulation(gameStates, fitness, chromosome);
             }
             appendGameState(gameStates, robot, food, getSensorIndexBitmap(robot, food));
             int sensorIndexBitmap = getSensorIndexBitmap(robot, food);
@@ -145,10 +144,7 @@ public class Evaluator {
             i++;
         }
         appendGameState(gameStates, robot, food, null);
-//        simulationsDeque.add(new GameSimulation(gameStates, fitness));
-
-        return new GameSimulation(gameStates, fitness);
-//        return fitness;
+        return new GameSimulation(gameStates, fitness, chromosome);
     }
 
 

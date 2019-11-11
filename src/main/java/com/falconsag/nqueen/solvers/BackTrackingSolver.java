@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -25,7 +24,7 @@ public class BackTrackingSolver implements NQueenSolver {
         permutate(q, size, threatPositions, solutions);
         List<Integer> solution = solutions.get(0);
         System.out.println("Size: " + solution.size());
-        System.out.println("Number of total solutions: "+solutions.size());
+        System.out.println("Number of total solutions: " + solutions.size());
         System.out.println(solution);
         return null;
     }
@@ -38,7 +37,6 @@ public class BackTrackingSolver implements NQueenSolver {
         int colPos = deque.size() + 1;
         if (deque.size() == size) {
             solutions.add(new ArrayList<>(deque));
-//            System.out.println(deque);
             deque.pollLast();
             threatPositions.removeAll(colPos);
             return deque;
@@ -49,7 +47,9 @@ public class BackTrackingSolver implements NQueenSolver {
         for (Integer possible : possibles) {
             deque.addLast(possible);
             updateThreatPositions(size, colPos, possible, threatPositions, false);
+//            if (solutions.size() == 0) {
             permutate(deque, size, threatPositions, solutions);
+//            }
         }
 
         Integer last = deque.pollLast();

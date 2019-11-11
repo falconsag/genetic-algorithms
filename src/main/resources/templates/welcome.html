@@ -25,6 +25,7 @@
                 Maze size:<input type="text" name="mazeSize" value="5"><br>
 
                 <button id="generateButton" type="button" onclick="">Evolve</button>
+                <button id="simulateWithGenesButton" type="button" onclick="">Simulate chromosome</button>
                 <button id="playButton" type="button" onclick="">Play</button>
                 <button id="stopButton" type="button" onclick="">Stop</button>
                 <br>
@@ -45,61 +46,24 @@
 </table>
 
 <canvas id="myCanvas" width="600" height="600"></canvas>
+<div>Best chromosome: <input type="text" name="bestChromosome" value="" style="width:1000px;"></div>
+<div>Simulate chromosome: <input type="text" name="simulateChromosome" value="" style="width:1000px;"></div>
+<button id="copyGenes" type="button" onclick="">Copy best genes</button>
+<button id="randomGene" type="button" onclick="">Random genes</button>
 <br>
-<div class="chart-container" style="width:600px;height:300px">
-    <canvas id="fitnessChart"></canvas>
-</div>
+
+
+<table  height="100%">
+    <tr>
+        <td>
+            <div class="chart-container" style="width:600px;height:300px">
+                <canvas id="fitnessChart"></canvas>
+            </div>
+        </td>
+    </tr>
+</table>
 <script src="script.js"></script>
-
-
-
-
-
-
-<!--<canvas id="myChart2" width="200" height="200"></canvas>-->
-<!--<script>-->
-
-<!--    var values=[0.5,1]-->
-
-<!--    var notations = {-->
-<!--        0: "",-->
-<!--        0.5: "",-->
-<!--        1: "outstanding",-->
-<!--    }-->
-<!--    var ctx = document.getElementById('myChart2').getContext('2d');-->
-<!--    var myChart = new Chart(ctx, {-->
-<!--        type: 'radar',-->
-<!--        data: {-->
-<!--            labels: Array(20).fill().map(function(){ return ""}),-->
-<!--            datasets: [{-->
-<!--                label: 'genes',-->
-<!--                data: Array(20).fill().map(function(){ return values[Math.round(Math.random())]}),-->
-<!--                borderWidth: 1,-->
-<!--                backgroundColor: 'rgba(53, 222, 164, 0.74)'-->
-
-<!--            }]-->
-<!--        },-->
-<!--        options: {-->
-<!--            scale: {-->
-<!--                ticks: {-->
-<!--                    beginAtZero: true,-->
-<!--                    callback: function(){return ""}-->
-<!--                }-->
-<!--            },-->
-<!--            maintainAspectRatio: true,-->
-<!--            spanGaps: false,-->
-<!--            elements: {-->
-<!--                line: {-->
-<!--                    tension: 0.3-->
-<!--                }-->
-<!--            }-->
-<!--        }-->
-<!--    });-->
-<!--</script>-->
-
-
-
-
+</canvas>
 </body>
 </html>
 

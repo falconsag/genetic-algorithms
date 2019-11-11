@@ -21,11 +21,15 @@ var objectsAhead = {0: "empty", 1: "wall"};
 var simulation;
 var fitnessChartCtx = document.getElementById('fitnessChart').getContext('2d');
 var fitnessChart
+var fitnessChartGroupping = 10
 var animationMs = getAnimationMS()
 var isAnimation = false;
-
+var fitnessDataFetchMs = 80
 var genLimit = 0;
-var evolving = false;
+var simulationPhenotypes
+var bestChromosomeInput = $("input[name='bestChromosome']")
+var simulateChromosomeInput = $("input[name='simulateChromosome']")
+
 
 var editor = {
     editorMode: isEditorChecked(),
@@ -57,23 +61,41 @@ function getMousePosition(canvas, event) {
 
 
 $("#generateButton").on("click", function () {
-    evolving = true;
-
+    if (typeof fitnessChart !== 'undefined') {
+        cleanChart(fitnessChart)
+    } else {
+        initializeFitnessChart([], []);
+    }
+    var fitnessChartData = fitnessChart.data.datasets[0].data
+    var fitnessChartLabels = fitnessChart.data.labels
     var getSimulationsFnct = function getSimulations() {
         $.ajax({
             contentType: 'application/json',
             dataType: 'json',
-            success: function (resp) {
-                console.log(resp.length)
-                if (resp.length < genLimit) {
-                    setTimeout(getSimulationsFnct, 50);
+            success: function (phenotypes) {
+                simulationPhenotypes = phenotypes
+
+                if (((phenotypes.length / fitnessChartGroupping) | 0) >= fitnessChartData.length) {
+                    for (var j = fitnessChartData.length * fitnessChartGroupping; j < phenotypes.length; j += fitnessChartGroupping) {
+                        fitnessChartData.push(phenotypes[j].fitness)
+                        fitnessChartLabels.push("Gen:" + j)
+                        bestChromosomeInput.val(phenotypes[j].genes)
+                    }
                 }
+                if (phenotypes.length < genLimit) {
+                    setTimeout(getSimulationsFnct, fitnessDataFetchMs);
+                } else {
+                    fitnessChartData.push(phenotypes[phenotypes.length - 1].fitness)
+                    fitnessChartLabels.push("Gen:" + (phenotypes.length))
+                    bestChromosomeInput.val(phenotypes[phenotypes.length - 1].genes)
+                }
+                fitnessChart.update();
             },
             type: 'GET',
             url: "http://localhost:8080/getSimulations"
         })
     }
-    setTimeout(getSimulationsFnct, 50);
+    setTimeout(getSimulationsFnct, fitnessDataFetchMs);
 
 
     disableEditorMode();
@@ -88,6 +110,95 @@ $("#generateButton").on("click", function () {
     var mazeSize = getMazeSize();
     var numberOfSimulationsToAvg = $("input[name='numberOfSimulationsToAvg']").val();
 
+    var req = {
+        editorConfig: editor,
+        simulatorConfig: {
+            genLimit: genLimit,
+            moveCost: moveCost,
+            turnCost: turnCost,
+            doNothingCost: doNothing,
+            numberOfSimulateSteps: numberOfSimulateSteps,
+            foodMin: foodMin,
+            foodMax: foodMax,
+            foodDecrease: foodDecrease,
+            numberOfSimulationsToAvg: numberOfSimulationsToAvg,
+            genes: JSON.parse("[" + simulateChromosomeInput.val() + "]")
+        }
+    }
+
+    var url = "http://localhost:8080/evolve"
+    $.ajax({
+        contentType: 'application/json',
+        data: JSON.stringify(req),
+        dataType: 'json',
+        success: function (simulationResponse) {
+            simulation = simulationResponse
+            sliderVal = 0
+            slider.val(sliderVal)
+            console.log("done..")
+
+            slider.attr("max", simulation.states.length - 1)
+            drawState(sliderVal)
+            slider.on("input change", function () {
+                sliderVal = slider.val();
+                drawState(sliderVal);
+            })
+        },
+        type: 'POST',
+        url: url
+    })
+})
+
+//almost identical to above
+$("#simulateWithGenesButton").on("click", function () {
+    if (typeof fitnessChart !== 'undefined') {
+        cleanChart(fitnessChart)
+    } else {
+        initializeFitnessChart([], []);
+    }
+    var fitnessChartData = fitnessChart.data.datasets[0].data
+    var fitnessChartLabels = fitnessChart.data.labels
+    var getSimulationsFnct = function getSimulations() {
+        $.ajax({
+            contentType: 'application/json',
+            dataType: 'json',
+            success: function (phenotypes) {
+                simulationPhenotypes = phenotypes
+
+                if (((phenotypes.length / fitnessChartGroupping) | 0) >= fitnessChartData.length) {
+                    for (var j = fitnessChartData.length * fitnessChartGroupping; j < phenotypes.length; j += fitnessChartGroupping) {
+                        fitnessChartData.push(phenotypes[j].fitness)
+                        fitnessChartLabels.push("Gen:" + j)
+                        bestChromosomeInput.val(phenotypes[j].genes)
+                    }
+                }
+                if (phenotypes.length < 1) {
+                    setTimeout(getSimulationsFnct, fitnessDataFetchMs);
+                } else {
+                    fitnessChartData.push(phenotypes[phenotypes.length - 1].fitness)
+                    fitnessChartLabels.push("Gen:" + (phenotypes.length))
+                    bestChromosomeInput.val(phenotypes[phenotypes.length - 1].genes)
+                }
+                fitnessChart.update();
+            },
+            type: 'GET',
+            url: "http://localhost:8080/getSimulations"
+        })
+    }
+    setTimeout(getSimulationsFnct, fitnessDataFetchMs);
+
+
+    disableEditorMode();
+    genLimit = $("input[name='genLimit']").val();
+    var moveCost = $("input[name='moveCost']").val();
+    var turnCost = $("input[name='turnCost']").val();
+    var doNothing = $("input[name='doNothingCost']").val();
+    var numberOfSimulateSteps = $("input[name='numberOfSimulateSteps']").val();
+    var foodMin = $("input[name='foodMin']").val();
+    var foodMax = $("input[name='foodMax']").val();
+    var foodDecrease = $("input[name='foodDecrease']").val();
+    var mazeSize = getMazeSize();
+    var numberOfSimulationsToAvg = $("input[name='numberOfSimulationsToAvg']").val();
 
     var req = {
         editorConfig: editor,
@@ -101,17 +212,15 @@ $("#generateButton").on("click", function () {
             foodMax: foodMax,
             foodDecrease: foodDecrease,
             numberOfSimulationsToAvg: numberOfSimulationsToAvg
-        }
+        },
+        genes: JSON.parse("[" + simulateChromosomeInput.val() + "]")
     }
-
-    var url = "http://localhost:8080/evolve"
-
+    var url = "http://localhost:8080/simulate"
     $.ajax({
         contentType: 'application/json',
         data: JSON.stringify(req),
         dataType: 'json',
         success: function (simulationResponse) {
-            evolving = false;
             simulation = simulationResponse
             sliderVal = 0
             slider.val(sliderVal)
@@ -123,39 +232,10 @@ $("#generateButton").on("click", function () {
                 sliderVal = slider.val();
                 drawState(sliderVal);
             })
-
-            var chartData = simulationResponse.fitnessValues
-            var labels = []
-            for (var i = 0; i < chartData.length; i++) {
-                labels.push("Generation: " + i)
-            }
-            if (typeof fitnessChart !== 'undefined') {
-                fitnessChart.data.labels = [];
-                fitnessChart.data.datasets[0].data = [];
-                fitnessChart.data.labels = [].concat(labels);
-                fitnessChart.data.datasets[0].data = [].concat(chartData);
-                fitnessChart.update();
-            } else {
-                fitnessChart = new Chart(fitnessChartCtx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Fitness over generations',
-                            backgroundColor: 'rgb(255, 99, 132)',
-                            borderColor: 'rgb(255, 99, 132)',
-                            data: chartData
-                        }]
-                    },
-                    // Configuration options go here
-                    options: {}
-                });
-            }
         },
         type: 'POST',
         url: url
     })
-
 })
 
 
@@ -439,6 +519,16 @@ $("#resetButton").on("click", function () {
         drawState(sliderVal);
     }
 })
+$("#copyGenes").on("click", function () {
+    simulateChromosomeInput.val(bestChromosomeInput.val())
+})
+$("#randomGene").on("click", function () {
+    var arr = [];
+    for (var i = 0, t = 4096; i < t; i++) {
+        arr.push(Math.round(Math.random()))
+    }
+    simulateChromosomeInput.val(arr)
+})
 $("#stopButton").on("click", function () {
     animationMs = getAnimationMS();
     isAnimation = false;
@@ -472,4 +562,31 @@ $("#playButton").on("click", function () {
 
 function isEditorChecked() {
     return $("input[name='editorModeCheckBox']").is(":checked")
+}
+
+function initializeFitnessChart(labels, chartData) {
+    fitnessChart = new Chart(fitnessChartCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Fitness over generations',
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: chartData
+            }]
+        },
+        // Configuration options go here
+        options: {}
+    });
+}
+
+function cleanChart(chart) {
+    if (typeof chart !== 'undefined') {
+        chart.data.labels.pop()
+        chart.data.labels = [];
+        chart.data.datasets[0].data.pop()
+        chart.data.datasets[0].data = [];
+        chart.update();
+    }
 }
