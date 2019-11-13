@@ -26,7 +26,7 @@ public class GAController {
 
     @GetMapping("/")
     public String hi() {
-        return "welcome";
+        return "robot";
     }
 
 

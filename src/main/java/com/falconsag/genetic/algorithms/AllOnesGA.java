@@ -2,6 +2,7 @@ package com.falconsag.genetic.algorithms;
 
 import com.falconsag.genetic.algorithms.model.Chromosome;
 import com.falconsag.genetic.algorithms.model.Population;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
 
